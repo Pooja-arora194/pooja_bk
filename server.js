@@ -13,8 +13,8 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
+
 app.use(cors());
 app.use(express.json());
 app.use('/v2', authRoutes);
