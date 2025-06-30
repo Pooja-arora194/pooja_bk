@@ -1,9 +1,22 @@
 import Leave from "../model/leave.js"
+import cloudinary from "../cloudinary";
+import fs from "fs";
 
 export const addLeave =async (req, res) => {
     try {
         const { candidateId ,designation, leaveDate, reason } = req.body;
-        const documentPath = req.file ? req.file.filename : null;
+
+        let documentPath = "";
+
+        if (req.file) {
+            const result = await cloudinary.uploader.upload(req.file.path, {
+                folder: "leave_documents",
+                resource_type: "auto",
+            });
+            documentPath = result.secure_url;
+
+            fs.unlinkSync(req.file.path);
+        }
 
         const leave = new Leave({
             candidateId,

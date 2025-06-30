@@ -1,10 +1,14 @@
-
 import express from 'express';
-const router = express.Router();
-import {addLeave, getLeaves, updateLeaveStatus} from "../controller/leaveController.js"
-import multer from 'multer'
-import path from 'path'
+import multer from 'multer';
+import path from 'path';
 import fs from 'fs';
+import {
+    addLeave,
+    getLeaves,
+    updateLeaveStatus
+} from "../controller/leaveController.js";
+
+const router = express.Router();
 
 const uploadsDir = path.resolve("public/uploads");
 if (!fs.existsSync(uploadsDir)) {
@@ -21,8 +25,31 @@ const storage = multer.diskStorage({
     },
 });
 
-const upload = multer({ storage });
-router.post("/addLeaves", upload.single("document"), addLeave);
+const upload = multer({
+    storage,
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error("Only PDF and image files are allowed"));
+        }
+    },
+});
+
+router.post("/addLeaves", (req, res, next) => {
+    upload.single("document")(req, res, function (err) {
+        if (err instanceof multer.MulterError) {
+            return res.status(400).json({ error: err.message });
+        } else if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        next();
+    });
+}, addLeave);
+
 router.get("/allLeaves", getLeaves);
 router.put("/update-leave-status/:id", updateLeaveStatus);
-export default  router;
+
+export default router;
