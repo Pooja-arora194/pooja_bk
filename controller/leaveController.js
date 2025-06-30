@@ -1,5 +1,5 @@
 import Leave from "../model/leave.js"
-import cloudinary from "../cloudinary";
+import cloudinary from "../cloudinary.js";
 import fs from "fs";
 
 export const addLeave =async (req, res) => {
