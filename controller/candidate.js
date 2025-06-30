@@ -22,6 +22,10 @@ export const addCandidates = async (req, res) => {
             status: req.body.status,
             resume: resumeUrl,
             dateOfJoining: req.body.dateOfJoining,
+            experience:req.body.experience,
+            position:req.body.position,
+            department:req.body.department,
+
         });
 
         await candidate.save();
