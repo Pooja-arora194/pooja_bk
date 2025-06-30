@@ -1,26 +1,35 @@
 import Candidates from "../model/candidate.js"
-
+import cloudinary from '../cloudinary.js';
+import fs from 'fs';
 export const addCandidates = async (req, res) => {
     try {
-        const { name, email, phone, position, department,experience } = req.body;
-        const resume = req.file ? req.file.filename : null;
+        let resumeUrl = "";
+
+        if (req.file) {
+            const result = await cloudinary.uploader.upload(req.file.path, {
+                folder: "resumes",
+                resource_type: "auto",
+            });
+            resumeUrl = result.secure_url;
+
+            fs.unlinkSync(req.file.path);
+        }
 
         const candidate = new Candidates({
-            name,
-            email,
-            phone,
-            position,
-            department,
-            resume,
-            experience
+            name: req.body.name,
+            email: req.body.email,
+            phone: req.body.phone,
+            status: req.body.status,
+            resume: resumeUrl,
+            dateOfJoining: req.body.dateOfJoining,
         });
 
         await candidate.save();
+        res.status(201).json({ message: "Candidate added", candidate });
 
-        res.status(201).json({ message: "Candidate added successfully", candidate });
-    } catch (error) {
-        console.error("Error adding candidate:", error);
-        res.status(500).json({ message: "Server Error" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Something went wrong while uploading" });
     }
 };
 export const getCandidates = async (req, res) => {
@@ -40,6 +49,28 @@ export const updateCandidateStatus = async (req, res) => {
         if (status == "Selected") {
             updateFields.joiningDate = new Date();
         }
+        const updatedCandidate = await Candidates.findByIdAndUpdate(
+            id,
+            updateFields,
+            { new: true }
+        );
+        if (!updatedCandidate) {
+            return res.status(404).json({ error: "Candidate not found" });
+        }
+
+        res.status(200).json(updatedCandidate);
+    } catch (error) {
+        console.error("Status update error:", error);
+        res.status(500).json({ error: "Failed to update status" });
+    }
+};
+export const updateCandidateAttendanceStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { attendance } = req.body;
+
+        const updateFields = { attendance };
+
         const updatedCandidate = await Candidates.findByIdAndUpdate(
             id,
             updateFields,

@@ -7,7 +7,6 @@ import { JWT_SECRET, JWT_EXPIRES_IN } from '../config/index.js';
 export const registerUser = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
-
     const { fullName, email, password, confirmPassword } = req.body;
 
     if (password !== confirmPassword) {
